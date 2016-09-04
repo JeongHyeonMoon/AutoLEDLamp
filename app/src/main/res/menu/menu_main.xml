@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".Activity.MapsActivity">
+    <item android:id="@+id/my_page"
+        android:icon="@drawable/ic_account_circle_black_24dp"
+        android:title="myPage"
+        app:showAsAction="always" />
+</menu>
