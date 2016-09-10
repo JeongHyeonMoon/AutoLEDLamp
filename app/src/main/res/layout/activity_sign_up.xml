@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:gravity="center"
+android:orientation="vertical"
+android:background="#ffffff"
+tools:context="com.duksung.autoledlamp.Activity.SignUpActivity">
+
+<EditText
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:backgroundTint="@color/colorAccent"
+    android:layout_marginTop="7dp"
+    android:layout_marginBottom="7dp"
+    android:layout_marginLeft="40dp"
+    android:layout_marginRight="40dp"
+    android:id="@+id/sign_up_email_et"
+    android:layout_gravity="center"
+    android:hint="이메일" />
+<EditText
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:backgroundTint="@color/colorAccent"
+    android:inputType="textPassword"
+    android:layout_marginTop="7dp"
+    android:layout_marginBottom="7dp"
+    android:layout_marginLeft="40dp"
+    android:layout_marginRight="40dp"
+    android:id="@+id/sign_up_password_et"
+    android:layout_gravity="center"
+    android:hint="비밀번호" />
+
+<EditText
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="7dp"
+    android:layout_marginBottom="7dp"
+    android:layout_marginLeft="40dp"
+    android:layout_marginRight="40dp"
+    android:backgroundTint="@color/colorAccent"
+    android:id="@+id/sign_up_name_et"
+    android:layout_centerHorizontal="true"
+    android:hint="이름" />
+
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="36dp"
+    android:background="@drawable/button_default"
+    android:layout_margin="10dp"
+    android:textColor="@color/colorAccent"
+    android:text="Sign up"
+    android:id="@+id/sign_up_btn"
+    android:textAllCaps="false" />
+
+</LinearLayout>

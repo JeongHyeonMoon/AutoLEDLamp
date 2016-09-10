@@ -73,6 +73,7 @@ public class SplashActivity extends AppCompatActivity{
                         imageView_splash_icon4.setVisibility(View.VISIBLE);
                         imageView_splash_icon5.setVisibility(View.VISIBLE);
                         textView_splash_label.setVisibility(View.VISIBLE);
+                        finish();
                         linearLayout.setBackgroundColor(Color.WHITE);
                         break;
                     case 7:
@@ -92,8 +93,6 @@ public class SplashActivity extends AppCompatActivity{
                         imageView_splash_icon5.setVisibility(View.VISIBLE);
                         textView_splash_label.setVisibility(View.VISIBLE);
                         linearLayout.setBackgroundColor(Color.WHITE);
-
-                        finish();
                         break;
                 }
                 i++;

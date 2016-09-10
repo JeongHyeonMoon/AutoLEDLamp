@@ -1,6 +1,8 @@
 package com.duksung.autoledlamp.Activity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
@@ -11,12 +13,10 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.duksung.autoledlamp.Activity.SplashActivity;
 import com.duksung.autoledlamp.R;
 
 import java.io.BufferedReader;
@@ -33,12 +33,14 @@ public class MainActivity extends AppCompatActivity {
     private ImageView icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,icon9,icon0;
     private TextView textView_timer;
     CountDownTimer mCountDown = null;
+    private static final int UART_PROFILE_CONNECTED = 20;
+    private static final int UART_PROFILE_DISCONNECTED = 21;
+    private int mState = UART_PROFILE_DISCONNECTED;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startActivity(new Intent(this,SplashActivity.class));
 
         actionBar = getSupportActionBar();
         actionBar.setShowHideAnimationEnabled(false);
@@ -252,5 +254,32 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mState == UART_PROFILE_CONNECTED) {
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startMain);
+        }
+        else {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(R.string.popup_title)
+                    .setMessage(R.string.popup_message)
+                    .setPositiveButton(R.string.popup_yes, new DialogInterface.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            LoginActivity loginActivity = (LoginActivity) LoginActivity.LoginActivity;
+                            loginActivity.finish();
+                            finish();
+                        }
+                    })
+                    .setNegativeButton(R.string.popup_no, null)
+                    .show();
+        }
     }
 }
