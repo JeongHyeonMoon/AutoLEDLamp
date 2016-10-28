@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private ActionBar actionBar;
-    private ImageButton button1,button2,button3,button4,button5,button6,button7,button8,button9,button10;
-    private ImageView icon1,icon2,icon3,icon4,icon5,icon6,icon7,icon8,icon9,icon0;
+    private ImageButton button1,button2,button3,button4,button5,button6;
+    private ImageView icon1,icon2,icon3,icon4,icon5,icon6;
     private TextView textView_timer;
     CountDownTimer mCountDown = null;
     private static final int UART_PROFILE_CONNECTED = 20;
@@ -57,10 +57,6 @@ public class MainActivity extends AppCompatActivity {
         button4.setOnClickListener(new ledButtonClickListener(4));
         button5.setOnClickListener(new ledButtonClickListener(5));
         button6.setOnClickListener(new ledButtonClickListener(6));
-        button7.setOnClickListener(new ledButtonClickListener(7));
-        button8.setOnClickListener(new ledButtonClickListener(8));
-        button9.setOnClickListener(new ledButtonClickListener(9));
-        button10.setOnClickListener(new ledButtonClickListener(0));
     }
 
     class ledButtonClickListener implements View.OnClickListener {
@@ -75,71 +71,51 @@ public class MainActivity extends AppCompatActivity {
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.INVISIBLE);
                     icon3.setVisibility(View.INVISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 2:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.INVISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 3:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 4:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 5:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.INVISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 6:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    icon7.setVisibility(View.INVISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 7:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    icon7.setVisibility(View.VISIBLE);icon8.setVisibility(View.INVISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 8:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    icon7.setVisibility(View.VISIBLE);icon8.setVisibility(View.VISIBLE);
-                    icon9.setVisibility(View.INVISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 9:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    icon7.setVisibility(View.VISIBLE);icon8.setVisibility(View.VISIBLE);
-                    icon9.setVisibility(View.VISIBLE);icon0.setVisibility(View.INVISIBLE);
                     break;
                 case 0:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    icon7.setVisibility(View.VISIBLE);icon8.setVisibility(View.VISIBLE);
-                    icon9.setVisibility(View.VISIBLE);icon0.setVisibility(View.VISIBLE);
                     break;
 
             }
@@ -156,6 +132,19 @@ public class MainActivity extends AppCompatActivity {
                 public void onFinish() {
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(500);
+
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setIcon(android.R.drawable.ic_dialog_info)
+                            .setMessage("측정이 완료되었습니다.")
+                            .setPositiveButton(R.string.popup_yes, new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                            .setNegativeButton(R.string.popup_no, null)
+                            .show();
                 }
             }.start();
         }
@@ -168,10 +157,6 @@ public class MainActivity extends AppCompatActivity {
         button4 = (ImageButton) findViewById(R.id.button4);
         button5 = (ImageButton) findViewById(R.id.button5);
         button6 = (ImageButton) findViewById(R.id.button6);
-        button7 = (ImageButton) findViewById(R.id.button7);
-        button8 = (ImageButton) findViewById(R.id.button8);
-        button9 = (ImageButton) findViewById(R.id.button9);
-        button10 = (ImageButton) findViewById(R.id.button10);
 
         textView_timer = (TextView) findViewById(R.id.textView_timer);
 
@@ -181,11 +166,6 @@ public class MainActivity extends AppCompatActivity {
         icon4 = (ImageView) findViewById(R.id.imageView_main_icon4);
         icon5 = (ImageView) findViewById(R.id.imageView_main_icon5);
         icon6 = (ImageView) findViewById(R.id.imageView_main_icon6);
-        icon7 = (ImageView) findViewById(R.id.imageView_main_icon7);
-        icon8 = (ImageView) findViewById(R.id.imageView_main_icon8);
-        icon9 = (ImageView) findViewById(R.id.imageView_main_icon9);
-        icon0 = (ImageView) findViewById(R.id.imageView_main_icon0);
-
 
     }
 
