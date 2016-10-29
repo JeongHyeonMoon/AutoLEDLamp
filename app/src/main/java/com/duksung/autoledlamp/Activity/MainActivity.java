@@ -62,21 +62,6 @@ public class MainActivity extends AppCompatActivity {
 
     // 시간
     private String strPrevNow2 = "first";
-    String strNow;
-
-    //getdata
-    String myJSON;
-    private static final String TAG_RESULTS = "result";
-    private static final String TAG_PERSON_CONDITION_ID = "person_conditionid";
-    private static final String TAG_PERSON_ID = "personid";
-    private static final String TAG_START_TIME = "start_time";
-    private static final String TAG_CONDITION_ID = "conditionid";
-    JSONArray std_place = null;
-
-    int real_personid;
-    int real_conditionid;
-    int real_person_conditionid;
-    String real_start_time;
 
     // gsr
     UsbManager usbManager;
@@ -86,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     StringBuffer buffer = new StringBuffer(4);
     String[] result ;
 
+    // led number
+    private String ledid;
+    int real_personid;
 
     UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() { //Defining a Callback which triggers whenever data is read.
         @Override
@@ -112,7 +100,8 @@ public class MainActivity extends AppCompatActivity {
                             String temp = buffer.toString();
                             result = temp.split("/"); // /로 끊어서 각 값을 구분 -> GSR만 가져오면 필요 없음
 
-                            GSRinsertToDatabase(Integer.toString(real_person_conditionid), s, result[0]);
+                            // GSRinsertToDatabase(Integer.toString(real_person_conditionid), s, result[0]);
+                            insertToDatabase(Integer.toString(real_personid),result[0],ledid);
                             strPrevNow2 = s;
                             buffer.setLength(0); // 버퍼 초기화
 
@@ -193,9 +182,6 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(broadcastReceiver, filter);
 
-        //getdata
-        getData("http://14.63.214.221/condition_get.php");
-        //getData("http://14.63.214.221/person_condition_get.php");
 
         SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
         real_personid = pref.getInt("personid",0);
@@ -241,72 +227,49 @@ public class MainActivity extends AppCompatActivity {
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.INVISIBLE);
                     icon3.setVisibility(View.INVISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
+                    ledid = "1";
                     break;
                 case 2:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.INVISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
+                    ledid = "2";
                     break;
                 case 3:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.INVISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
+                    ledid = "3";
                     break;
                 case 4:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.INVISIBLE);icon6.setVisibility(View.INVISIBLE);
+                    ledid = "4";
                     break;
                 case 5:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.INVISIBLE);
+                    ledid = "5";
                     break;
                 case 6:
                     icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
                     icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
                     icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
+                    ledid = "6";
                     break;
-                /*
-                case 7:
-                    icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
-                    icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
-                    icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    break;
-                case 8:
-                    icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
-                    icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
-                    icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    break;
-                case 9:
-                    icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
-                    icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
-                    icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    break;
-                case 0:
-                    icon1.setVisibility(View.VISIBLE);icon2.setVisibility(View.VISIBLE);
-                    icon3.setVisibility(View.VISIBLE);icon4.setVisibility(View.VISIBLE);
-                    icon5.setVisibility(View.VISIBLE);icon6.setVisibility(View.VISIBLE);
-                    break;
-                    */
             }
 
-            // 시간
-            long now = System.currentTimeMillis();
-            Date date = new Date(now);
-            SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            strNow = sdfNow.format(date);
 
             // 누른 버튼 값을 arduino로 보내기
             serialPort.write(Integer.toString(num).getBytes());
 
-
             mCountDown = new CountDownTimer(10000,1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
-                    insertToDatabase("11");
-                    insertToDatabase(Integer.toString(real_personid),Integer.toString(real_conditionid),strNow);
 
+                    serialPort.read(mCallback);
                     textView_timer.setText(""+String.format("%d : %d",
                             TimeUnit.MILLISECONDS.toMinutes( millisUntilFinished),
                             TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
@@ -315,6 +278,10 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFinish() {
+                    serialPort.close();
+                    insertToDatabase(Integer.toString(real_personid),ledid);
+
+                    textView_timer.setText("00 : 00");
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(500);
 
@@ -354,57 +321,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void insertToDatabase(String value){
-        class InsertData extends AsyncTask<String,Void, String> {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-            }
-            @Override
-            protected String doInBackground(String... params) {
-                try{
-                    String value = (String)params[0];
-
-                    String link="http://14.63.214.221/test_insert.php";
-                    String data  = URLEncoder.encode("value", "UTF-8") + "=" + URLEncoder.encode(value, "UTF-8");
-
-                    URL url = new URL(link);
-                    URLConnection conn = url.openConnection();
-                    conn.setDoOutput(true);
-                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-
-                    wr.write(data);
-                    wr.flush();
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-                    StringBuilder sb = new StringBuilder();
-                    String line = null;
-
-                    // Read Server Response
-                    while((line = reader.readLine()) != null)
-                    {
-                        sb.append(line);
-                        break;
-                    }
-                    return sb.toString();
-                }
-                catch(Exception e){
-                    return new String("Exception: " + e.getMessage());
-                }
-            }
-        }
-        InsertData task = new InsertData();
-        task.execute(value);
-    }
-
 
     // 서버에 저장하는 함수
-    private void insertToDatabase(String personid, String conditionid, String time){
+    private void insertToDatabase(String memberid, String gsr, String ledid){
         class InsertData extends AsyncTask<String,Void, String> {
             @Override
             protected void onPreExecute() {
@@ -417,15 +336,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected String doInBackground(String... params) {
                 try{
-                    String personid = (String)params[0];
-                    String conditionid = (String)params[1];
-                    String time = (String)params[2];
+                    String memberid = (String)params[0];
+                    String gsr = (String)params[1];
+                    String ledid = (String)params[2];
 
 
-                    String link="http://14.63.214.221/person_condition_insert.php";
-                    String data  = URLEncoder.encode("personid", "UTF-8") + "=" + URLEncoder.encode(personid, "UTF-8");
-                    data += "&" + URLEncoder.encode("conditionid", "UTF-8") + "=" + URLEncoder.encode(conditionid, "UTF-8");
-                    data += "&" + URLEncoder.encode("time", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
+                    String link="http://14.63.214.221/gsr_insert2.php";
+                    String data  = URLEncoder.encode("memberid", "UTF-8") + "=" + URLEncoder.encode(memberid, "UTF-8");
+                    data += "&" + URLEncoder.encode("gsr", "UTF-8") + "=" + URLEncoder.encode(gsr, "UTF-8");
+                    data += "&" + URLEncoder.encode("ledid", "UTF-8") + "=" + URLEncoder.encode(ledid, "UTF-8");
 
                     URL url = new URL(link);
                     URLConnection conn = url.openConnection();
@@ -454,7 +373,59 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         InsertData task = new InsertData();
-        task.execute(personid, conditionid, time);
+        task.execute(memberid, gsr, ledid);
+    }
+
+    // 서버에 저장하는 함수
+    private void insertToDatabase(String memberid, String ledid){
+        class InsertData extends AsyncTask<String,Void, String> {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+            }
+            @Override
+            protected String doInBackground(String... params) {
+                try{
+                    String memberid = (String)params[0];
+                    String ledid = (String)params[1];
+
+
+                    String link="http://14.63.214.221/best_led_insert.php";
+                    String data  = URLEncoder.encode("memberid", "UTF-8") + "=" + URLEncoder.encode(memberid, "UTF-8");
+                    data += "&" + URLEncoder.encode("ledid", "UTF-8") + "=" + URLEncoder.encode(ledid, "UTF-8");
+
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
+                    conn.setDoOutput(true);
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                    wr.write(data);
+                    wr.flush();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                    StringBuilder sb = new StringBuilder();
+                    String line = null;
+
+                    // Read Server Response
+                    while((line = reader.readLine()) != null)
+                    {
+                        sb.append(line);
+                        break;
+                    }
+                    return sb.toString();
+                }
+                catch(Exception e){
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
+        }
+        InsertData task = new InsertData();
+        task.execute(memberid, ledid);
     }
 
 
@@ -503,125 +474,4 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         }
     }
-
-
-    // 서버에서 사용자 정보 가져오는 함수
-    private void checkPersonCondition(){
-        try {
-            JSONObject jsonObj = new JSONObject(myJSON);
-            std_place = jsonObj.getJSONArray(TAG_RESULTS);
-
-            for (int i = 0; i < std_place.length(); i++) {
-                JSONObject c = std_place.getJSONObject(i);
-                int json_person_condition_id = c.getInt(TAG_PERSON_CONDITION_ID);
-                int json_personid = c.getInt(TAG_PERSON_ID);
-                int json_conditionid = c.getInt(TAG_CONDITION_ID);
-                String json_strNow = c.getString(TAG_START_TIME);
-
-                Log.d("hyunhye",json_personid +","+ real_personid +","+ json_conditionid +","+ real_conditionid +","+ real_start_time +","+ json_strNow);
-                if(json_personid == real_personid && json_conditionid == real_conditionid && real_start_time.equals(json_strNow)){
-                    real_person_conditionid = json_person_condition_id;
-                    SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = pref.edit();
-                    editor.putInt("person_condition_id", real_person_conditionid);
-                    editor.commit();
-                }
-            }
-        }catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void getData(String url) {
-        class GetDataJSON extends AsyncTask<String, Void, String> {
-            @Override
-            protected String doInBackground(String... params) {
-                String uri = params[0];
-
-                BufferedReader bufferedReader = null;
-                try {
-                    URL url = new URL(uri);
-                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                    StringBuilder sb = new StringBuilder();
-
-                    bufferedReader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-                    String json;
-                    while ((json = bufferedReader.readLine()) != null) {
-                        sb.append(json + "\n");
-                    }
-                    return sb.toString().trim();
-
-                } catch (Exception e) {
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
-                myJSON = result;
-                checkPersonCondition();
-            }
-        }
-        GetDataJSON g = new GetDataJSON();
-        g.execute(url);
-    }
-
-
-    // 서버에 저장하는 함수_gsr
-    private void GSRinsertToDatabase(String person_conditionid, String time, String gsrdata){
-        class InsertData extends AsyncTask<String,Void, String> {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-            }
-            @Override
-            protected String doInBackground(String... params) {
-                try{
-                    String person_conditionid = (String)params[0];
-                    String time = (String)params[1];
-                    String gsrdata = (String)params[2];
-
-
-                    String link="http://14.63.214.221/gsr_insert.php";
-                    String data  = URLEncoder.encode("person_conditionid", "UTF-8") + "=" + URLEncoder.encode(person_conditionid, "UTF-8");
-                    data += "&" + URLEncoder.encode("time", "UTF-8") + "=" + URLEncoder.encode(time, "UTF-8");
-                    data += "&" + URLEncoder.encode("gsrdata", "UTF-8") + "=" + URLEncoder.encode(gsrdata, "UTF-8");
-
-
-                    //Log.d("attention",attention);
-                    URL url = new URL(link);
-                    URLConnection conn = url.openConnection();
-                    conn.setDoOutput(true);
-                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-
-                    wr.write(data);
-                    wr.flush();
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-                    StringBuilder sb = new StringBuilder();
-                    String line = null;
-
-                    // Read Server Response
-                    while((line = reader.readLine()) != null)
-                    {
-                        sb.append(line);
-                        break;
-                    }
-                    return sb.toString();
-                }
-                catch(Exception e){
-                    return new String("Exception: " + e.getMessage());
-                }
-            }
-        }
-        InsertData task = new InsertData();
-        task.execute(person_conditionid, time, gsrdata);
-    }
-
 }
