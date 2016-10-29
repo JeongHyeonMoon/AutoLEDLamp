@@ -83,7 +83,7 @@ public class LoginActivity extends Activity {
         try{
             if(pref.getBoolean("autoLogin",false)){
                 LoginActivity = LoginActivity.this;
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                Intent intent = new Intent(LoginActivity.this, ButtonActivity.class);
                 startActivity(intent);
             }
         }catch (NullPointerException e){
@@ -134,7 +134,7 @@ public class LoginActivity extends Activity {
 
                 if(email.equals(login_email_et.getText().toString()) && password.equals(login_password_et.getText().toString())){
                     savePreferences(personid, email,password, name);
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, ButtonActivity.class);
                     startActivity(intent);
 
                     break;
