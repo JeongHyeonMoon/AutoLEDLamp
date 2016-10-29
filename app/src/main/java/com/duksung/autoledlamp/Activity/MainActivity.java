@@ -29,15 +29,10 @@ import com.duksung.autoledlamp.R;
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -69,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
     UsbSerialDevice serialPort;
     UsbDeviceConnection connection;
     StringBuffer buffer = new StringBuffer(4);
-    String[] result ;
+    String[] result = null;
+    String result2 = null;
 
     // led number
     private String ledid;
@@ -81,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             String data = null; // 아두이노에서 가져오는 data
             try {
                 data = new String(arg0, "UTF-8");
-                data.concat("/n");
+                //data.concat("/n");
 
                 // 현재 시간 알아내기
                 long now = System.currentTimeMillis();
@@ -98,10 +94,16 @@ public class MainActivity extends AppCompatActivity {
                     for(int k = 0 ; k < data.length(); k++) {
                         if (data.charAt(k) == '*') { // 아두이노 한줄의 끝에 *을 붙여 가져온다
                             String temp = buffer.toString();
-                            result = temp.split("/"); // /로 끊어서 각 값을 구분 -> GSR만 가져오면 필요 없음
+                            //result = temp.split("/"); // /로 끊어서 각 값을 구분 -> GSR만 가져오면 필요 없음
+                            result2 = buffer.toString();
 
                             // GSRinsertToDatabase(Integer.toString(real_person_conditionid), s, result[0]);
-                            insertToDatabase(Integer.toString(real_personid),result[0],ledid);
+                            //insertToDatabase(Integer.toString(real_personid),result[0],ledid);
+                            insertToDatabase(Integer.toString(real_personid),result2,ledid);
+                            System.out.println("result" + result2);
+                            //System.out.println("result1" + result[1]);
+                            //System.out.println("result2" + result[2]);
+
                             strPrevNow2 = s;
                             buffer.setLength(0); // 버퍼 초기화
 
@@ -264,12 +266,14 @@ public class MainActivity extends AppCompatActivity {
 
             // 누른 버튼 값을 arduino로 보내기
             serialPort.write(Integer.toString(num).getBytes());
+            onClickStart(button1);
 
             mCountDown = new CountDownTimer(10000,1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
 
-                    serialPort.read(mCallback);
+                    //serialPort.read(mCallback);
+
                     textView_timer.setText(""+String.format("%d : %d",
                             TimeUnit.MILLISECONDS.toMinutes( millisUntilFinished),
                             TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) -
