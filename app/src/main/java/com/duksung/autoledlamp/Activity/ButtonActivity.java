@@ -1,19 +1,29 @@
 package com.duksung.autoledlamp.Activity;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 
 import com.duksung.autoledlamp.R;
+import com.felhr.usbserial.UsbSerialDevice;
+import com.felhr.usbserial.UsbSerialInterface;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,10 +32,15 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ButtonActivity extends AppCompatActivity {
 
@@ -41,6 +56,98 @@ public class ButtonActivity extends AppCompatActivity {
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private int mState = UART_PROFILE_DISCONNECTED;
+
+    // usb permission
+    public final String ACTION_USB_PERMISSION = "com.hariharan.arduinousb.USB_PERMISSION";
+
+    // gsr
+    UsbManager usbManager;
+    UsbDevice device;
+    UsbSerialDevice serialPort;
+    UsbDeviceConnection connection;
+    StringBuffer buffer = new StringBuffer(4);
+    String[] result = null;
+    String result2 = null;
+
+
+    UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() { //Defining a Callback which triggers whenever data is read.
+        @Override
+        public void onReceivedData(byte[] arg0) {
+            String data = null; // 아두이노에서 가져오는 data
+            try {
+                data = new String(arg0, "UTF-8");
+                //data.concat("/n");
+
+                // 현재 시간 알아내기
+                long now = System.currentTimeMillis();
+                Date date = new Date(now);
+                SimpleDateFormat sdfNow = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                String s = sdfNow.format(date);
+
+
+                if(data != null){
+                    buffer.append(data); // 아두이노에서 가져온 값을 buffer에 차례로 임시 저장
+                    for(int k = 0 ; k < data.length(); k++) {
+                        if (data.charAt(k) == '*') { // 아두이노 한줄의 끝에 *을 붙여 가져온다
+                            String temp = buffer.toString();
+                            //result = temp.split("/"); // /로 끊어서 각 값을 구분 -> GSR만 가져오면 필요 없음
+                            result2 = buffer.toString();
+                            result2 = result2.substring(0,result2.length()-1); // 마지막 * 떼내기
+
+                            // GSRinsertToDatabase(Integer.toString(real_person_conditionid), s, result[0]);
+                            //insertToDatabase(Integer.toString(real_personid),result[0],ledid);
+                            //insertToDatabase(Integer.toString(real_personid),result2,ledid);
+                            System.out.println("result" + result2);
+                            //System.out.println("result1" + result[1]);
+                            //System.out.println("result2" + result[2]);
+
+
+                            buffer.setLength(0); // 버퍼 초기화
+
+                        }
+                    }
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() { //Broadcast Receiver to automatically start and stop the Serial connection.
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
+                boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
+                if (granted) {
+                    connection = usbManager.openDevice(device);
+                    serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
+                    if (serialPort != null) {
+                        if (serialPort.open()) { //Set Serial Connection Parameters.
+                            serialPort.setBaudRate(9600);
+                            serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
+                            serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
+                            serialPort.setParity(UsbSerialInterface.PARITY_NONE);
+                            serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
+                            serialPort.read(mCallback);
+
+
+                        } else {
+                            Log.d("SERIAL", "PORT NOT OPEN");
+                        }
+                    } else {
+                        Log.d("SERIAL", "PORT IS NULL");
+                    }
+                } else {
+                    Log.d("SERIAL", "PERM NOT GRANTED");
+                }
+            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+                onClickStart();
+            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
+                // onClickStop();
+            }
+        };
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +187,43 @@ public class ButtonActivity extends AppCompatActivity {
                 getData("http://14.63.214.221/best_led_get.php");
             }
         });
+
+        // usb
+        usbManager = (UsbManager) getSystemService(this.USB_SERVICE);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_USB_PERMISSION);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        registerReceiver(broadcastReceiver, filter);
+        onClickStart();
     }
 
+
+
+    public void onClickStart() {
+
+        HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
+        if (!usbDevices.isEmpty()) {
+            boolean keep = true;
+            for (Map.Entry<String, UsbDevice> entry : usbDevices.entrySet()) {
+                device = entry.getValue();
+                int deviceVID = device.getVendorId();
+                if (deviceVID == 0x2341)//Arduino Vendor ID
+                {
+                    PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+                    usbManager.requestPermission(device, pi);
+                    keep = false;
+                } else {
+                    connection = null;
+                    device = null;
+                }
+
+                if (!keep)
+                    break;
+            }
+        }
+
+    }
     // 서버에 저장하는 함수
     private void insertToDatabase(String memberid){
         class InsertData extends AsyncTask<String,Void, String> {
@@ -141,7 +283,9 @@ public class ButtonActivity extends AppCompatActivity {
             int i;
             for (i = 0; i < myprofile.length(); i++) {
                 JSONObject c = myprofile.getJSONObject(i);
-                int ledid = c.getInt(TAG_LED_ID);
+                String ledid = c.getString(TAG_LED_ID);
+                System.out.println("ledid: "+ledid);
+                serialPort.write(ledid.getBytes());
             }
 
         }catch (JSONException e) {

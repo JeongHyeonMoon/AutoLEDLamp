@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
                             String temp = buffer.toString();
                             //result = temp.split("/"); // /로 끊어서 각 값을 구분 -> GSR만 가져오면 필요 없음
                             result2 = buffer.toString();
+                            result2 = result2.substring(0,result2.length()-1); // 마지막 * 떼내기
 
                             // GSRinsertToDatabase(Integer.toString(real_person_conditionid), s, result[0]);
                             //insertToDatabase(Integer.toString(real_personid),result[0],ledid);
@@ -262,8 +263,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             // 누른 버튼 값을 arduino로 보내기
-            serialPort.write(Integer.toString(num).getBytes());
             onClickStart(button1);
+            serialPort.write(Integer.toString(num).getBytes());
+
 
             mCountDown = new CountDownTimer(10000,1000) {
                 @Override
