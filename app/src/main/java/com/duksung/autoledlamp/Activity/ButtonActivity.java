@@ -13,9 +13,12 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -43,9 +46,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ButtonActivity extends AppCompatActivity {
-
+    private ActionBar actionBar;
     Button button_measure, button_start;
     int real_personid;
+    boolean check;
 
     // getdata
     String myJSON;
@@ -152,18 +156,14 @@ public class ButtonActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
-        }
-
         setContentView(R.layout.activity_button);
 
+        actionBar = getSupportActionBar();
+        actionBar.setShowHideAnimationEnabled(false);
+        actionBar.setHomeButtonEnabled(false);
+        actionBar.show();
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionBar.setCustomView(R.layout.actionbar);
 
         button_measure = (Button) findViewById(R.id.button_measure);
         button_start = (Button) findViewById(R.id.button_start);
@@ -183,7 +183,14 @@ public class ButtonActivity extends AppCompatActivity {
         button_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                insertToDatabase(Integer.toString(real_personid));
+                SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
+                check = pref.getBoolean("check_led",false);
+                if(!check) {
+                    insertToDatabase(Integer.toString(real_personid));
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putBoolean("check_led", true);
+                    editor.commit();
+                }
                 getData("http://14.63.214.221/best_led_get.php");
             }
         });
@@ -353,5 +360,23 @@ public class ButtonActivity extends AppCompatActivity {
                     .setNegativeButton(R.string.popup_no, null)
                     .show();
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id){
+            case R.id.my_page:
+                Intent intent = new Intent(ButtonActivity.this, MyPageActivity.class);
+                startActivity(intent);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
